@@ -1,3 +1,8 @@
+@using System.Web.Configuration
+@{
+    Layout = null;
+}
+
 <!DOCTYPE html>
 <html>
 
@@ -15,11 +20,80 @@
 
         }
     </style>
-    <title>macau_puiching_ecret_Network</title>
+    <title>Macau_PuiChing_Secret_Network</title>
 </head>
 
 <body>
     <h1>123</h1>
+    <button type="button" id="btnSignIn">Google登入</button>
+    <button type="button" id="btnDisconnect">斷連Google App</button>
+     
+
+    
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+     
+    <script type="text/javascript">
+        let GoolgeApp_Cient_Id = "@WebConfigurationManager.AppSettings["Google_clientId_forLogin"]";
+        let id_token_to_userIDUrl = "@Url.Action("Test","Home")";  
+    </script>
+    
+    <script src="https://apis.google.com/js/platform.js?onload=GoogleSigninInit" async defer></script>
+
+    
+    <script type="text/javascript">
+        
+        $(function () {
+            $("#btnSignIn").on("click", function () {
+                GoogleLogin();
+            });
+            $("#btnDisconnect").on("click", function () {
+                Google_disconnect();
+            });
+        });
+
+        function GoogleSigninInit() {
+            gapi.load('auth2', function () {
+                gapi.auth2.init({
+                    client_id: GoolgeApp_Cient_Id
+                });
+            });
+        }
+
+        
+        function GoogleLogin() {
+            let auth2 = gapi.auth2.getAuthInstance();
+            auth2.signIn().then(function (GoogleUser) {
+                console.log("Google登入成功"); 
+                let user_id =  GoogleUser.getId();  
+                let AuthResponse = GoogleUser.getAuthResponse(true) ;
+                let id_token = AuthResponse.id_token;
+                $.ajax({
+                    url: id_token_to_userIDUrl,
+                    method: "post",
+                    data: { id_token: id_token },
+                    success: function (msg) {
+                        console.log(msg);
+                    }
+                });//end $.ajax 
+               
+            },
+                function (error) {
+                    console.log("Google登入失敗");
+                    console.log(error);
+                });
+
+        }
+         
+
+         
+        function Google_disconnect() {
+            let auth2 = gapi.auth2.getAuthInstance(); 
+
+            auth2.disconnect().then(function () {
+                console.log('User disconnect.');
+            });
+        } 
+    </script>
 </body>
 
 </html>
